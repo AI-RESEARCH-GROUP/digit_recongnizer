@@ -27,48 +27,8 @@ there are 3 files,contain test.csv;train.csv;sample_submission.csv.
         there are two columns containing the image symbol and the predicted value
 ```
 
-# Install Dependencies
-
-### gpu mode
-```
-# install pytorch
-pip install torch==1.7.0+cu101 torchvision==0.8.1+cu101 torchaudio===0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
-
-# then install other package
-pip install -r requirements-cuda101.txt
-```
-
-### cpu mode
-```
-# install pytorch
-pip install torch==1.7.0+cpu torchvision==0.8.1+cpu torchaudio===0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
-# then install other package
-pip install -r requirements.txt
-```
-
-# Preprocess
-```
-cd project_root_dir
-python preprocess.py
-```
 
 # How to run 
-
-### gpu mode
 ```
-# defult mode is gpu mode
-
-cd project_root_dir  
-python train.py --gpu=0
-python test.py --gpu=0
+python train.py
 ```
-
-### cpu mode
-```
-cd project_root_dir 
-python train.py --gpu=-1
-python test.py --gpu=-1
-```
-
-* more args can be seen from src/args_and_config/args.py 
-* more config can be seen from src/args_and_config/config.py 
