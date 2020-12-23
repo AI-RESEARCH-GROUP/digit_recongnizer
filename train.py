@@ -1,38 +1,58 @@
 # -*- coding: UTF-8 -*-
-from sklearn.ensemble import RandomForestClassifier
-import numpy as np
 import pandas as pd
-import csv
+import torch.utils.data as data
+import torch
+import torch.nn as nn
+
+file = 'data/train.csv'
+LR = 0.01
 
 
-def loadData():
-    train = pd.read_csv('data/train.csv')
-    test = pd.read_csv('data/test.csv')
+class MNISTCSVDataset(data.Dataset):
 
-    trainData = train.drop(['label'], axis=1).values.astype(dtype=np.int64)
-    trainLabel = np.array(train['label'])
+    def __init__(self, csv_file, Train=True):
+        self.dataframe = pd.read_csv(csv_file, iterator=True)
+        self.Train = Train
 
-    testData = test.values
-    print('load Data finish!!!')
+    def __len__(self):
+        if self.Train:
+            return 42000
+        else:
+            return 28000
 
-    return trainData, trainLabel, testData
+    def __getitem__(self, idx):
+        data = self.dataframe.get_chunk(100)
+        ylabel = data['label'].values.astype('float')
+        xdata = data.iloc[:, 1:].values.astype('float')
+        return ylabel, xdata
 
+#训练实例化
+mydataset = MNISTCSVDataset(file)
 
-def saveResult(testLabel, fileName):
-    header = ['ImageID', 'Label']
-    with open(fileName, 'w', newline='') as csvFile:
-        writer = csv.writer(csvFile, delimiter=',')
-        writer.writerow(header)
-        for i, p in enumerate(testLabel):
-            writer.writerow([str(i + 1), str(p)])
+train_loader = torch.utils.data.DataLoader(mydataset, batch_size=1, shuffle=True)
 
-#随机森林分类
-def RFClassify(trainData, trainLabel, testData):
-    nbCF = RandomForestClassifier(n_estimators=256, warm_start=True)
-    nbCF.fit(trainData, np.ravel(trainLabel))
-    testLabel = nbCF.predict(testData)
-    saveResult(testLabel, 'output/output5.csv')
-    print('finish!!!')
+#定义神经网络
+net = nn.Sequential(
+    nn.Linear(28 * 28, 100),
+    nn.ReLU(),
+    nn.Linear(100, 10)
+)
+#s损失函数、优化器
+loss_function = nn.MultiMarginLoss()
+optimizer = torch.optim.Adam(net.parameters(), lr=LR)
 
+for step, (yl, xd) in enumerate(train_loader):
+    output = net(xd.squeeze().float())
+    yl = yl.long()
+    loss = loss_function(output, yl.squeeze())
+    optimizer.zero_grad()
+    #做反向传播，看反向传播前后的误差
+    loss.backward()
+    #做优化，先要拿到梯度
+    optimizer.step()#基于梯度，完成参数更新
 
-RFClassify(*loadData())
+    if step % 20 == 0:
+        print('step %d loss %.3f' % (step, loss))
+
+torch.save(net, 'checkpoints/divided-net.pkl')
+print("The results are saved in'checkpoints/divided-net.pkl' ")
