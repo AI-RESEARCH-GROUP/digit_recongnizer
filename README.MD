@@ -30,5 +30,7 @@ there are 3 files,contain test.csv;train.csv;sample_submission.csv.
 
 # How to run 
 ```
+python preprocess.py
 python train.py
+python test.py
 ```
