@@ -44,4 +44,8 @@ with open('data/sample_submission.csv', 'r') as fp_in, open('output/result.csv',
         else:
             row[-1] = str(values[i-1])
             writer.writerow(row)
-
+1.测试集数据npz,dataset dataloader,for 循环；
+2.开启evl模式
+3.加载最优参数放入model
+4.cuda(输入和网络)
+5.结束
