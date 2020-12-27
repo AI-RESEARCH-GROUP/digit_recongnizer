@@ -28,6 +28,8 @@ def load_train_validate_data():
         exit(-1)
 
     train_validate = np.load(proj_root_dir + 'data/train_validate.npz')
+    x = train_validate[]
+    y = train_validate["label"]
     return train_validate
 
 #加载测试集
@@ -39,8 +41,9 @@ def load_test_data():
 train_validate = load_train_validate_data()
 test =  load_test_data
 n_train,n_validate = sample_split_ratio(train_validate)
-n_test = len(test)
-n_pixels = len(train_validate.columns)-1
+n_pixels =train_validate.shape[1]-1
+n_test = test.shape[0]-1
+
 
 class MyDataset(data.Dataset):
 

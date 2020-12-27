@@ -12,7 +12,7 @@ config={
     "related_week_num": 3,  # how many week's data that is related to today
     "related_hour_num": 3,  # how many hour's data that is related to today
 
-    "train_validate_test_ratio": "7:3",  # train example vs validate example  ratio
+    "train_validate_ratio": "7:3",  # train example vs validate example  ratio
 
 }
 
