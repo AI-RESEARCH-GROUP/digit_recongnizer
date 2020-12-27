@@ -14,9 +14,9 @@ def evaluate(model, xdata, ylabel):
     model.eval()
 
     with torch.no_grad():
-        loss_function = nn.MultiMarginLoss()
+        loss_function = nn.L1Loss()
         predicts = model(xdata)
-        loss = loss_function(predicts, ylabel.squeeze())
+        loss = loss_function(predicts, ylabel)
         return loss.item()
 
 
@@ -46,9 +46,9 @@ def train():
     # ================================================
 
     model = nn.Sequential(
-        nn.Linear(28 * 28, 100),
+        # nn.Linear(28 * 28, 100),
         nn.ReLU(),
-        nn.Linear(100, 10)
+        nn.Linear(28*28, 1)
     )
     if cuda:
         model.cuda()
@@ -60,7 +60,7 @@ def train():
     for param in model.parameters():
         print(param)
         nn.init.normal_(param, mean=0, std=0.01)
-    loss_function = nn.MultiMarginLoss()
+    loss_function = nn.L1Loss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)#lr=0.01,可在args中修改
 
     # ================================================
@@ -79,21 +79,25 @@ def train():
     for epoch_i in range(0,args.n_epochs):
         print("Epoch {:05d} training...".format(epoch_i))
         durations = []
-        for xdata_train_batch ,ylabel_train_batch in enumerate(train_dataloader):
+        # for xdata_train_batch ,ylabel_train_batch in enumerate(train_dataloader):
+        for step, (xdata_train_batch, ylabel_train_batch) in enumerate(train_dataloader):
             model.train()
+
             t0 = time.time()
             # =========================
             # get input parameter
             # =========================
-            xdata_train = xdata_train_batch[100].int()
-            ylabel_train = ylabel_train_batch[100].int()
+            xdata_train = xdata_train_batch
+            # print(xdata_train.shape)
+            ylabel_train = ylabel_train_batch
             if cuda:
                 xdata_train = xdata_train.to(args.gpu)
                 ylabel_train = ylabel_train.to(args.gpu)
             #forward
-            output = model(xdata_train.squeeze().float())
-            ylabel_train = ylabel_train.long()
-            loss = loss_function(output, ylabel_train.squeeze())
+            output = model(xdata_train.float())
+
+            ylabel_train = ylabel_train.float()
+            loss = loss_function(output.squeeze().float(), ylabel_train.float())
             #梯度清零
             optimizer.zero_grad()
             #做反向传播，看反向传播前后的误差
@@ -107,14 +111,14 @@ def train():
         # 6) after each epochs ends
         # ================================================
         losses = []
-        for xdata_batch_validate ,ylabel_batch_validate in enumerate(validate_dataloader):
-            xdata_validate = xdata_batch_validate[100].int()
-            ylabel_validate = ylabel_batch_validate[100].int()
+        for step, (xdata_batch_validate ,ylabel_batch_validate) in enumerate(validate_dataloader):
+            xdata_validate = xdata_batch_validate.float()
+            ylabel_validate = ylabel_batch_validate.float()
 
             if cuda:
                 xdata_validate = xdata_validate.to(args.gpu)
                 ylabel_validate = ylabel_validate.to(args.gpu)
-        loss = evaluate(model, xdata_validate,ylabel_validate)
+        loss = evaluate(model, xdata_validate, ylabel_validate)
         losses.append(loss)
 
         print("Epoch {:05d} | Time(s) {:.4f}s | Loss {:.4f} |"
@@ -123,19 +127,18 @@ def train():
         # 7) after all epochs ends
         # ================================================
         losses = []
-        for xdata_batch_test ,ylabel_batch_test in enumerate(test_dataloader):
-            xdata_test = xdata_batch_test[100].int()
+        for xdata_batch_test in test_dataloader:
+            xdata_test = xdata_batch_test.float()
             if cuda:
                 xdata_test = xdata_test.to(args.gpu)
-                ylabel_test = ylabel_test.to(args.gpu)
-        loss = evaluate(model, xdata_test,ylabel_test)
-        losses.append(loss)
+        # loss = evaluate(model, xdata_test,ylabel_test)
+        # losses.append(loss)
 
         print("Test loss {:.4f}".format(np.mean(losses)))
         # ================================================
         # 8) save model parameters
         # ================================================
-        save_model_parameters(model)
+    save_model_parameters(model)
 
 def main():
     train()

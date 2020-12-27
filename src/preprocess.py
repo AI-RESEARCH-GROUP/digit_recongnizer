@@ -13,8 +13,7 @@ def preprocess():
     train_df = pd.read_csv(proj_root_dir + 'data/train.csv')
     test_df = pd.read_csv(proj_root_dir + 'data/test.csv')
 #todo 没有将df转成ndarry
-    x =
-    y =
+
     np.savez(proj_root_dir + 'data/train_validate.npz', train_set=train_df.values)
     np.savez(proj_root_dir + 'data/test.npz', test_set=test_df.values)
 
