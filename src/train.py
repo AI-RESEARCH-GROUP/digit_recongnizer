@@ -14,9 +14,9 @@ def evaluate(model, xdata, ylabel):
     model.eval()
 
     with torch.no_grad():
-        loss_function = nn.L1Loss()
+        loss_function =nn.L1Loss()
         predicts = model(xdata)
-        loss = loss_function(predicts, ylabel)
+        loss = loss_function(predicts.to(torch.float32), ylabel.to(torch.float32))
         return loss.item()
 
 
@@ -46,10 +46,11 @@ def train():
     # ================================================
 
     model = nn.Sequential(
-        # nn.Linear(28 * 28, 100),
+        nn.Linear(28 * 28, 100),
         nn.ReLU(),
-        nn.Linear(28*28, 1)
+        nn.Linear(100, 10)
     )
+
     if cuda:
         model.cuda()
 
@@ -60,7 +61,7 @@ def train():
     for param in model.parameters():
         print(param)
         nn.init.normal_(param, mean=0, std=0.01)
-    loss_function = nn.L1Loss()
+    loss_function = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)#lr=0.01,可在args中修改
 
     # ================================================
@@ -94,10 +95,11 @@ def train():
                 xdata_train = xdata_train.to(args.gpu)
                 ylabel_train = ylabel_train.to(args.gpu)
             #forward
-            output = model(xdata_train.float())
+            output = model(xdata_train.squeeze().float())
 
-            ylabel_train = ylabel_train.float()
-            loss = loss_function(output.squeeze().float(), ylabel_train.float())
+            ylabel_train = ylabel_train.long()
+            # loss = loss_function(output.squeeze().float(), ylabel_train.float())
+            loss = loss_function(output, ylabel_train.squeeze())
             #梯度清零
             optimizer.zero_grad()
             #做反向传播，看反向传播前后的误差
@@ -134,7 +136,7 @@ def train():
         # loss = evaluate(model, xdata_test,ylabel_test)
         # losses.append(loss)
 
-        print("Test loss {:.4f}".format(np.mean(losses)))
+        # print("Test loss {:.4f}".format(np.mean(losses)))
         # ================================================
         # 8) save model parameters
         # ================================================
