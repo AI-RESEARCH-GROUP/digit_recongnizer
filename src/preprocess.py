@@ -12,7 +12,6 @@ def preprocess():
 
     train_df = pd.read_csv(proj_root_dir + 'data/train.csv')
     test_df = pd.read_csv(proj_root_dir + 'data/test.csv')
-#todo train_set=train_df.values就是将dataframe转成ndarry
 
     np.savez(proj_root_dir + 'data/train_validate.npz', train_set=train_df.values)
     np.savez(proj_root_dir + 'data/test.npz', test_set=test_df.values)
