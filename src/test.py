@@ -10,14 +10,14 @@ from src.util.util import proj_root_dir,file_exists
 from src.args_and_config.args import args
 from src.data_loader import load_train_validate_data,load_test_data, TrainDataset, ValidateDataset, TestDataset
 
-def evaluate(model, xdata, ylabel):
+def predicts(model, xdata, ):
     model.eval()
 
     with torch.no_grad():
         loss_function =nn.L1Loss()
         predicts = model(xdata)
-        loss = loss_function(predicts.to(torch.float32), ylabel.to(torch.float32))
-        return loss.item()
+
+        return predicts
 
 def test():
     if not file_exists(proj_root_dir + 'checkpoints/model_parameters.pth'):
@@ -59,22 +59,21 @@ def test():
     t0 = time.time()
     durations = []
 
-    losses = []
-    for step, (xdata_test_batch, ylabel_test_batch) in enumerate(test_dataloader):
+    result = []
+    for step, (xdata_test_batch) in enumerate(test_dataloader):
         model.test()
 
         t0 = time.time()
         xdata_test = xdata_test_batch
-        ylabel_test = ylabel_test_batch
+
         if cuda:
             xdata_test = xdata_test.to(args.gpu)
-            ylabel_test = ylabel_test.to(args.gpu)
 
-    loss = evaluate(model, xdata_test, ylabel_test)
-    losses.append(loss)
+    predicts_result = predicts(model, xdata_test)
+    result.append(predicts_result)
 
     durations.append(time.time() - t0)
-    print("Test loss {:.4f} | Time(s) {:.4f}s".format(np.mean(losses), np.mean(durations) / 1000))
+    # print("Test loss {:.4f} | Time(s) {:.4f}s".format(np.mean(losses), np.mean(durations) / 1000))
 
 def main():
     test()

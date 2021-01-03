@@ -34,12 +34,6 @@ def train():
     if args.gpu < 0:
         cuda = False
 
-    # ================================================
-    # 2) get data
-    # ================================================
-
-    train_validate = load_train_validate_data()
-    test_data = load_test_data()
 
     # ================================================
     # 3) init model/loss/optimizer
@@ -125,18 +119,6 @@ def train():
 
         print("Epoch {:05d} | Time(s) {:.4f}s | Loss {:.4f} |"
               . format(epoch_i, np.mean(durations), np.mean(losses)))
-        # ================================================
-        # 7) after all epochs ends
-        # ================================================
-        losses = []
-        for xdata_batch_test in test_dataloader:
-            xdata_test = xdata_batch_test.float()
-            if cuda:
-                xdata_test = xdata_test.to(args.gpu)
-        # loss = evaluate(model, xdata_test,ylabel_test)
-        # losses.append(loss)
-
-        # print("Test loss {:.4f}".format(np.mean(losses)))
         # ================================================
         # 8) save model parameters
         # ================================================
