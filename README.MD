@@ -32,5 +32,5 @@ there are 3 files,contain test.csv;train.csv;sample_submission.csv.
 ```
 python preprocess.py
 python train.py
-python test.py
+python predict.py
 ```
