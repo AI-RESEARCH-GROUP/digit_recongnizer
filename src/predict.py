@@ -1,25 +1,14 @@
 # -*- coding: UTF-8 -*-
-import pandas as pd
 import numpy as np
-import torch.utils.data as data
 import time
 import torch
-import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
+from src.model.Sequential import Sequential
 from src.util.util import proj_root_dir,file_exists
 from src.args_and_config.args import args
-from src.data_loader import load_train_validate_data,load_test_data, TrainDataset, ValidateDataset, TestDataset
+from src.data_loader import  PredictDataset
 
-def predicts(model, xdata, ):
-    model.eval()
-
-    with torch.no_grad():
-        loss_function =nn.L1Loss()
-        predicts = model(xdata)
-
-        return predicts
-
-def test():
+def predicts():
     if not file_exists(proj_root_dir + 'checkpoints/model_parameters.pth'):
         print()
         print("please run train.py first !!!")
@@ -33,35 +22,22 @@ def test():
         cuda = False
 
     # ================================================
-    # 2) get data
-    # ================================================
-
-    train_validate = load_train_validate_data()
-    test_data = load_test_data()
-
-    # ================================================
     # 3) get model from checkpoints
     # ================================================
-    model = nn.Sequential(
-        nn.Linear(28 * 28, 100),
-        nn.ReLU(),
-        nn.Linear(100, 10)
-    )
+    model = Sequential()
     model.load_state_dict(torch.load(proj_root_dir + 'checkpoints/model_parameters.pth'))
     if cuda:
-        model.cuda()
+        model.to(args.gpu)
     # ================================================
     # 4) eval/test
     # ================================================
-    test_dataset = TestDataset()
-    test_dataloader = DataLoader(test_dataset, batch_size=10, shuffle=True)
+    predict_dataset = PredictDataset()
+    predict_dataloader = DataLoader(predict_dataset, batch_size=10, shuffle=True)
 
     t0 = time.time()
     durations = []
 
-    result = []
-    for step, (xdata_test_batch) in enumerate(test_dataloader):
-        model.test()
+    for xdata_test_batch in predict_dataloader:
 
         t0 = time.time()
         xdata_test = xdata_test_batch
@@ -69,14 +45,14 @@ def test():
         if cuda:
             xdata_test = xdata_test.to(args.gpu)
 
-    predicts_result = predicts(model, xdata_test)
-    result.append(predicts_result)
+    predicts_result = model(xdata_test.float())
+    print(predicts_result)
 
     durations.append(time.time() - t0)
-    # print("Test loss {:.4f} | Time(s) {:.4f}s".format(np.mean(losses), np.mean(durations) / 1000))
+    print(" Time(s) {:.4f}s". format(np.mean(durations) / 1000))
 
 def main():
-    test()
+    predicts()
 
 
 if __name__ == '__main__':

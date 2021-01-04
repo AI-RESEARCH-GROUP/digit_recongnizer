@@ -42,33 +42,7 @@ def load_test_data():
 train_validate = load_train_validate_data()
 test = load_test_data()
 n_train, n_validate = sample_split_ratio(train_validate)
-# n_pixels =train_validate.shape[1]-1
 n_test = len(test)
-
-
-# class MyDataset(data.Dataset):
-#
-#     def __init__(self, ):
-#         self.start_index = 0
-# #todo there is a problem about how to distinguish between train data and test data
-#         if n_pixels == 784:
-#             # test data
-#             self.X = data.iloc[:, 1:].values.astype('float')
-#             self.y = None
-#         else:
-#             # training data
-#             self.X = data.iloc[:, 1:].values.astype('float')
-#             self.y = data['label'].values.astype('float')
-#
-#
-#     def __getitem__(self, index):
-#         if self.y is not None:
-#             ylabel = data[self.start_index + index]
-#             xdata = data[self.start_index + index]
-#             return ylabel , xdata
-#         else:
-#             xdata = data[self.start_index + index]
-#             return xdata
 
 class TrainDataset(Dataset):
     def __init__(self, ):
@@ -96,7 +70,7 @@ class ValidateDataset(Dataset):
         return  xdata, ylabel
 
 
-class TestDataset(Dataset):
+class PredictDataset(Dataset):
     def __init__(self, ):
         self.start_index = 0
 
@@ -104,7 +78,7 @@ class TestDataset(Dataset):
         return n_test
 
     def __getitem__(self, index):
-        xdata = train_validate[self.start_index + index]
+        xdata = test[self.start_index + index]
         return xdata
 
 

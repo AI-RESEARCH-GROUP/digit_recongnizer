@@ -1,14 +1,14 @@
 # -*- coding: UTF-8 -*-
-import pandas as pd
+
 import numpy as np
-import torch.utils.data as data
 import time
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
 from src.util.util import proj_root_dir
 from src.args_and_config.args import args
-from src.data_loader import load_train_validate_data,load_test_data, TrainDataset, ValidateDataset, TestDataset
+from src.model.Sequential import Sequential
+from src.data_loader import  TrainDataset, ValidateDataset
 
 def evaluate(model, xdata, ylabel):
     model.eval()
@@ -39,14 +39,10 @@ def train():
     # 3) init model/loss/optimizer
     # ================================================
 
-    model = nn.Sequential(
-        nn.Linear(28 * 28, 100),
-        nn.ReLU(),
-        nn.Linear(100, 10)
-    )
+    model = Sequential()
 
     if cuda:
-        model.cuda()
+        model.to(args.gpu)
 
     # ================================================
     # 4) model parameter init（初始化）
@@ -68,13 +64,9 @@ def train():
     validate_dataset = ValidateDataset()
     validate_dataloader = DataLoader(validate_dataset, batch_size=10, shuffle=True)
 
-    test_dataset = TestDataset()
-    test_dataloader = DataLoader(test_dataset, batch_size=10, shuffle=True)
-
     for epoch_i in range(0,args.n_epochs):
         print("Epoch {:05d} training...".format(epoch_i))
         durations = []
-        # for xdata_train_batch ,ylabel_train_batch in enumerate(train_dataloader):
         for step, (xdata_train_batch, ylabel_train_batch) in enumerate(train_dataloader):
             model.train()
 
@@ -83,16 +75,14 @@ def train():
             # get input parameter
             # =========================
             xdata_train = xdata_train_batch
-            # print(xdata_train.shape)
             ylabel_train = ylabel_train_batch
             if cuda:
                 xdata_train = xdata_train.to(args.gpu)
                 ylabel_train = ylabel_train.to(args.gpu)
             #forward
-            output = model(xdata_train.squeeze().float())
+            output = model(xdata_train.float())
 
             ylabel_train = ylabel_train.long()
-            # loss = loss_function(output.squeeze().float(), ylabel_train.float())
             loss = loss_function(output, ylabel_train.squeeze())
             #梯度清零
             optimizer.zero_grad()
